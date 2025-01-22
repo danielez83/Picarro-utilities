@@ -10,7 +10,7 @@ Function adapted for Picarro L2140i - HKDS2092
 @author: daniele
 """
 
-def import_picarro_raw_data(Picarro_data_path, op_mode):
+def import_picarro_raw_data(Picarro_data_path, op_mode, verbose = False):
     """
     Import raw data from Picarro file. Function willl load all available files 
     in Picarro_data_path. 
@@ -23,6 +23,8 @@ def import_picarro_raw_data(Picarro_data_path, op_mode):
     op_mode : TYPE
         'normal' should work in normal mode with L2140-i
         '17O' should work in O-17 mode with L2140-i
+    verbose : boolean, default is false
+        Returns information during loading of the data if set to True
 
     Returns
     -------
@@ -50,12 +52,13 @@ def import_picarro_raw_data(Picarro_data_path, op_mode):
     # Import files
     for file in data_filenames:
         if file[-4:] == '.dat': # skip non-dat files
-            print('Reading: ', Picarro_data_path + file)
+            if verbose:
+                print('Reading: ', Picarro_data_path + file)
             df_dummy = pd.read_csv(Picarro_data_path + file,
                                    delim_whitespace = True,
                                    index_col = (0),
                                    parse_dates=[[0, 1]],
-                                   infer_datetime_format=True ,
+                                   #infer_datetime_format=True ,
                                    na_values=['NAN'],
                                    usecols=col_names,
                                    dtype={'FRAC_DAYS_SINCE_JAN1': np.float64})
