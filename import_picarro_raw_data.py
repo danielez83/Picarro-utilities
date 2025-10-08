@@ -1,5 +1,7 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#%%
 """
 Created on Thu Apr  7 17:08:10 2022
 
@@ -35,8 +37,8 @@ def import_picarro_raw_data(Picarro_data_path, op_mode, verbose = False):
     import numpy as np
     import os
     # Mode select
-    col_names = ['DATE', 'TIME', 'H2O', 'Delta_18_16', 'Delta_D_H', 'ValveMask']
-    col_names_extra = ['CavityPressure', 'CavityTemp', 'WarmBoxTemp', 'DasTemp', 'EtalonTemp', 'MPVPosition', 'OutletValve']
+    col_names = ['DATE', 'TIME', 'H2O', 'Delta_18_16', 'Delta_D_H', 'ValveMask', 'MPVPosition']
+    col_names_extra = ['CavityPressure', 'CavityTemp', 'WarmBoxTemp', 'DasTemp', 'EtalonTemp', 'OutletValve']
     #col_names = col_names + col_names_extra
     if op_mode  == 'normal':
         # Variable position in raw data file
@@ -55,17 +57,22 @@ def import_picarro_raw_data(Picarro_data_path, op_mode, verbose = False):
             if verbose:
                 print('Reading: ', Picarro_data_path + file)
             df_dummy = pd.read_csv(Picarro_data_path + file,
-                                   delim_whitespace = True,
-                                   index_col = (0),
-                                   parse_dates=[[0, 1]],
-                                   #infer_datetime_format=True ,
-                                   na_values=['NAN'],
+                                   sep=r'\s+',
                                    usecols=col_names,
                                    dtype={'FRAC_DAYS_SINCE_JAN1': np.float64})
             Picarro_data = pd.concat([Picarro_data, df_dummy], axis = 0)
+    # Build index and remove DATE and TIME
+    Picarro_data.index = pd.to_datetime(Picarro_data['DATE'] + " " + Picarro_data['TIME'])
+    Picarro_data.drop(columns = ['DATE', 'TIME'], inplace = True)
     # Sort observation by index
     Picarro_data.index.name='Date'
     Picarro_data.sort_values(axis = 0, by = 'Date', inplace=True) # This now sorts in date order 
     #Picarro_data.index = Picarro_data.index.tz_localize('UTC') # Set timezone to UTC
     del(df_dummy)
     return Picarro_data
+
+#%%
+if __name__ == "__main__":
+    testpath = '../../Picarro Data/HIDS2383/2025/10/06/'
+    data = import_picarro_raw_data(Picarro_data_path=  testpath, op_mode = 'normal', verbose = True)
+# %%
